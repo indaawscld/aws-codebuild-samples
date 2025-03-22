@@ -1,12 +1,15 @@
-FROM node:4-alpine
+# Use a more recent Node.js version
+FROM node:18-alpine
 
 WORKDIR /root
 
-COPY package.json npm-shrinkwrap.json ./
+# Copy package.json and package-lock.json
+COPY package.json package-lock.json ./
 
-RUN apk update \
-    && apk upgrade \
-    && apk add bash \
-    && npm install \
-    && mv node_modules node_modules_cache \
-    && rm -r package.json npm-shrinkwrap.json /tmp/*
+# Install dependencies
+RUN apk add --no-cache bash \
+    && npm ci
+
+# Cache node_modules for faster builds (Optional)
+RUN mv node_modules node_modules_cache \
+    && rm -rf /tmp/*

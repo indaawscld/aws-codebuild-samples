@@ -1,12 +1,22 @@
 version: 0.2
 
 phases:
-  install:
+  pre_build:
     commands:
-      - npm install
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 880502554903.dkr.ecr.us-east-2.amazonaws.com
+      - IMAGE_TAG=$(date +%Y%m%d%H%M%S)  # Generate a unique image tag
   build:
     commands:
-      - npm test
+      - echo "Building Docker image..."
+      - docker build -t simple-docker-service:$IMAGE_TAG -f ./Dockerfile .
+      - docker tag simple-docker-service:$IMAGE_TAG 880502554903.dkr.ecr.us-east-2.amazonaws.com/simple-docker-service:$IMAGE_TAG
+  post_build:
+    commands:
+      - echo "Pushing Docker image to Amazon ECR..."
+      - docker push 880502554903.dkr.ecr.us-east-2.amazonaws.com/simple-docker-service:$IMAGE_TAG
+      - echo "Image pushed successfully!"
+
 artifacts:
   files:
     - '**/*'
